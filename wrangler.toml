@@ -1,0 +1,5 @@
+# Cloudflare Pages project settings, used by `wrangler pages deploy` (see .github/workflows/deploy.yml).
+# `name` must match the Pages project name in your Cloudflare dashboard.
+name = "fashion-finder-india"
+pages_build_output_dir = "dist/fashion-finder-india/browser"
+compatibility_date = "2025-09-01"

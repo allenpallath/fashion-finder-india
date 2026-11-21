@@ -1,0 +1,590 @@
+@import "tailwindcss";
+
+@theme {
+  --color-ink: #031c26;
+  --font-sans: 'Urbanist', system-ui, -apple-system, sans-serif;
+}
+
+:root {
+  color-scheme: dark;
+}
+
+html {
+  scroll-behavior: smooth;
+  scrollbar-gutter: stable;
+}
+
+button,
+a,
+[role='option'] {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:not(:disabled),
+a[href],
+[role='button'],
+[role='option'],
+label[for],
+summary {
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--color-ink);
+  color: #fff;
+  /* Glass has no fill, so a soft shadow keeps text legible over bright parts of the gradient. */
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+::selection {
+  background: rgba(90, 210, 244, 0.45);
+}
+
+/* Glass components live in the components layer so Tailwind utilities on the
+   same element (absolute, pr-14, text colours…) still apply. */
+@layer components {
+  /* ===========================================================================
+     Liquid glass surfaces — no fill, only blur, refraction and rim light.
+
+     The blur lives on an ::after layer behind each element rather than on the
+     element itself: an element with backdrop-filter stops its children from
+     seeing the page behind it, so glass nested in glass (chips in the form)
+     would otherwise go dark. --lg-refract and --lg-shine are set per element by
+     the liquidGlass directive (Chromium only); they're reset here so nested
+     glass never inherits its parent's lens.
+     ========================================================================= */
+
+  .lg-panel,
+  .lg-card,
+  .lg-bubble,
+  .lg-cta {
+    --lg-refract: initial;
+    --lg-shine: initial;
+    position: relative;
+    isolation: isolate;
+    background: var(--lg-shine, none) 0 0 / 100% 100% no-repeat;
+  }
+
+  .lg-panel::after,
+  .lg-card::after,
+  .lg-bubble::after,
+  .lg-cta::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    pointer-events: none;
+    -webkit-backdrop-filter: var(--lg-glass);
+    backdrop-filter: var(--lg-glass);
+  }
+
+  .lg-panel {
+    --lg-glass: blur(26px) saturate(120%) var(--lg-refract,);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.25),
+      inset 0 -1px 0 rgba(255, 255, 255, 0.06),
+      0 20px 40px -24px rgba(0, 0, 0, 0.6);
+  }
+
+  /* Cards sit on the already-frosted popup, so they skip their own backdrop blur:
+     it looks the same and keeps the carousel smooth while sliding. */
+  .lg-card {
+    --lg-glass: none;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.28),
+      0 10px 22px -14px rgba(0, 0, 0, 0.7);
+    transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.4s ease;
+  }
+
+  @media (hover: hover) {
+    /* Kept within the carousel's bottom padding so the glow isn't clipped. */
+  .lg-card:hover {
+    transform: translateY(-3px);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.32),
+      0 10px 22px -12px rgba(90, 210, 244, 0.55);
+  }
+  }
+
+  /* Gradient hairline border via mask */
+  .lg-rim::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(
+      140deg,
+      rgba(255, 255, 255, 0.55) 0%,
+      rgba(255, 255, 255, 0.06) 35%,
+      rgba(170, 230, 255, 0.35) 65%,
+      rgba(234, 249, 255, 0.22) 100%
+    );
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+  }
+
+  /* Bubble — flat frosted glass for chips, icon buttons, tags: soft translucent
+     fill, strong blur, thin even border. No gloss or refraction. */
+  .lg-bubble {
+    --lg-glass: blur(18px) saturate(150%);
+    color: rgba(255, 255, 255, 0.92);
+    font-weight: 500;
+    background: rgba(255, 255, 255, 0.07);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+  }
+
+  @media (hover: hover) {
+    .lg-bubble:hover {
+      background: rgba(255, 255, 255, 0.12);
+      border-color: rgba(255, 255, 255, 0.24);
+    }
+  }
+
+  /* One option of <app-segmented>; the selected one also gets lg-knob. */
+  .lg-segment {
+    padding: 0.4rem 1.1rem;
+    border-radius: 9999px;
+    font-size: 0.875rem;
+    color: rgba(255, 255, 255, 0.8);
+    transition: background 0.2s ease, color 0.2s ease;
+  }
+
+  .lg-segment:has(:focus-visible) {
+    outline: 2px solid rgba(255, 255, 255, 0.7);
+    outline-offset: 2px;
+  }
+
+  /* Knob — the arrow button's look, used for every action button. */
+  .lg-knob {
+    color: #031c26;
+    font-weight: 600;
+    text-shadow: none;
+    background: #fff;
+    border: none;
+    box-shadow: 0 6px 18px -4px rgba(255, 255, 255, 0.45);
+    transition: transform 0.25s ease, box-shadow 0.25s ease, opacity 0.2s ease;
+  }
+
+  @media (hover: hover) {
+    .lg-knob:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: 0 8px 22px -4px rgba(255, 255, 255, 0.6);
+    }
+  }
+
+  .lg-knob:active:not(:disabled) {
+    transform: scale(0.95);
+  }
+
+  .lg-knob:disabled {
+    opacity: 0.35;
+  }
+
+  /* Inputs */
+  .lg-input {
+    width: 100%;
+    color: #fff;
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
+    border-radius: 1.25rem;
+    padding: 0.95rem 1.15rem;
+    font-size: 1rem;
+    outline: none;
+    transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .lg-input::placeholder {
+    color: rgba(255, 255, 255, 0.62);
+  }
+
+  .lg-input:focus {
+    border-color: rgba(255, 255, 255, 0.4);
+    box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.12);
+  }
+
+  .lg-input--error {
+    border-color: rgba(251, 113, 133, 0.75);
+    background: rgba(251, 113, 133, 0.08);
+  }
+
+  .lg-label {
+    display: block;
+    font-size: 0.8rem;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    color: rgba(255, 255, 255, 0.82);
+    margin-bottom: 0.6rem;
+  }
+
+  /* CTA — glass pill track with white knob + arrow and trailing dots */
+  .lg-cta {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    width: 100%;
+    padding: 0.4rem 1.4rem 0.4rem 0.4rem;
+    border-radius: 9999px;
+    color: #fff;
+    font-weight: 500;
+    --lg-glass: blur(12px) saturate(140%) var(--lg-refract,);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.28),
+      0 10px 24px -14px rgba(0, 0, 0, 0.6);
+    transition: border-color 0.25s ease, box-shadow 0.25s ease, opacity 0.25s ease;
+  }
+
+  .lg-cta:hover:not(:disabled) {
+    border-color: rgba(255, 255, 255, 0.35);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.3),
+      0 14px 30px -14px rgba(90, 210, 244, 0.55);
+  }
+
+  .lg-cta:disabled {
+    opacity: 0.4;
+  }
+
+  .lg-cta__knob {
+    flex-shrink: 0;
+    display: grid;
+    place-items: center;
+    width: 3.1rem;
+    height: 3.1rem;
+    border-radius: 9999px;
+    background: #fff;
+    color: #031c26;
+    text-shadow: none;
+    box-shadow: 0 6px 18px -4px rgba(255, 255, 255, 0.45);
+    transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+
+  .lg-cta--sm .lg-cta__knob {
+    width: 2.4rem;
+    height: 2.4rem;
+  }
+
+  .lg-cta--xs {
+    width: auto;
+    gap: 0.75rem;
+    padding: 3px 1rem 3px 3px; /* 32px knob + 3px + 1px border = 40px tall */
+  }
+
+  .lg-cta--xs .lg-cta__knob {
+    width: 2rem;
+    height: 2rem;
+  }
+
+  @media (hover: hover) {
+    .lg-cta:hover:not(:disabled) .lg-cta__knob {
+      transform: translateX(4px);
+    }
+  }
+
+  .lg-cta__label {
+    flex: 1;
+    min-width: 0;
+    text-align: left;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .lg-cta--sm .lg-cta__label,
+  .lg-cta--xs .lg-cta__label {
+    font-size: 0.875rem;
+  }
+
+  /* Three small dots; they pulse while busy (CTA and loader). */
+  .lg-dots {
+    display: flex;
+    gap: 5px;
+  }
+
+  .lg-dots i {
+    width: 5px;
+    height: 5px;
+    border-radius: 9999px;
+    background: rgba(255, 255, 255, 0.55);
+  }
+
+  .lg-dots--busy i,
+  .lg-cta--busy .lg-dots i {
+    animation: lg-dot 1s ease-in-out infinite;
+  }
+  .lg-dots i:nth-child(2) { animation-delay: 0.15s; }
+  .lg-dots i:nth-child(3) { animation-delay: 0.3s; }
+
+  @keyframes lg-dot {
+    0%, 100% { opacity: 0.25; transform: translateY(0); }
+    50% { opacity: 1; transform: translateY(-3px); }
+  }
+
+  /* Ring spinner, sized to the knob it sits in. */
+  .lg-spinner {
+    width: 45%;
+    height: 45%;
+    border-radius: 9999px;
+    border: 2px solid currentColor;
+    border-right-color: transparent;
+    animation: lg-spin 0.8s linear infinite;
+  }
+
+  @keyframes lg-spin {
+    to { transform: rotate(360deg); }
+  }
+
+  /* Dropdown list (glass select + dress type suggestions). Pair with lg-panel lg-rim. */
+  .lg-menu {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 100%;
+    z-index: 50;
+    margin-top: 0.5rem;
+    padding: 0.375rem;
+    border-radius: 1.6rem;
+  }
+
+  .lg-option {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.625rem 1rem;
+    border-radius: 1.1rem;
+    font-size: 0.875rem;
+    color: rgba(255, 255, 255, 0.85);
+    transition: background 0.15s ease, color 0.15s ease;
+  }
+
+  .lg-option--active {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.15);
+  }
+
+  .lg-checkbox {
+    flex-shrink: 0;
+    display: grid;
+    place-items: center;
+    width: 1.125rem;
+    height: 1.125rem;
+    border-radius: 0.4rem;
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    transition: background 0.15s ease, border-color 0.15s ease;
+  }
+
+  .lg-checkbox--on {
+    color: #031c26;
+    background: #fff;
+    border-color: #fff;
+  }
+
+  /* Thin "range" meter with glass pill marker (rating on cards) */
+  .lg-meter {
+    position: relative;
+    height: 1.5rem;
+  }
+
+  .lg-meter::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 50%;
+    height: 1px;
+    background: linear-gradient(90deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0.15));
+  }
+
+  .lg-meter__pill {
+    position: absolute;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    padding: 0.1rem 0.55rem;
+    font-size: 0.7rem;
+    font-weight: 500;
+    border-radius: 9999px;
+  }
+
+  /* Dropdown menu open/close. Only transforms and child opacity are animated:
+     opacity on the menu itself would cut its blur layer off from the page. */
+  .lg-menu-enter {
+    transform-origin: top center;
+    animation: lg-menu-in 0.24s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  .lg-menu-enter::before,
+  .lg-menu-enter::after {
+    animation: lg-fade-in 0.2s ease-out;
+  }
+  .lg-menu-enter > * {
+    animation: lg-item-in 0.26s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+    animation-delay: calc(var(--i, 0) * 18ms);
+  }
+  .lg-menu-leave {
+    transform-origin: top center;
+    animation: lg-menu-out 0.16s ease-in forwards;
+  }
+  .lg-menu-leave::before,
+  .lg-menu-leave::after,
+  .lg-menu-leave > * {
+    animation: lg-fade-out 0.14s ease-in forwards;
+  }
+}
+
+/* Results modal: the scrim fades, the dialog only moves (fading it would cut
+   its glass off from the page). The host holds for the same time so Angular
+   waits before removing it. */
+.lg-modal-enter { animation: lg-hold 0.32s; }
+.lg-modal-enter .lg-modal-scrim { animation: lg-fade-in 0.25s ease-out; }
+.lg-modal-enter .lg-modal-dialog { animation: lg-modal-in 0.32s cubic-bezier(0.2, 0.8, 0.2, 1); }
+.lg-modal-leave { animation: lg-hold 0.2s forwards; }
+.lg-modal-leave .lg-modal-scrim { animation: lg-fade-out 0.2s ease-in forwards; }
+.lg-modal-leave .lg-modal-dialog { animation: lg-modal-out 0.2s ease-in forwards; }
+
+/* Toasts slide up and settle; only transforms, so their glass stays live. */
+.lg-toast-enter { animation: lg-toast-in 0.34s cubic-bezier(0.2, 0.8, 0.2, 1); }
+.lg-toast-leave { animation: lg-toast-out 0.22s ease-in forwards; }
+
+@keyframes lg-toast-in {
+  from { transform: translateY(calc(100% + 1.5rem)) scale(0.96); }
+}
+@keyframes lg-toast-out {
+  to { transform: translateY(calc(100% + 1.5rem)) scale(0.96); }
+}
+
+@keyframes lg-hold {
+  from { opacity: 1; }
+  to { opacity: 1; }
+}
+@keyframes lg-modal-in {
+  from { transform: translateY(28px) scale(0.97); }
+}
+@keyframes lg-modal-out {
+  to { transform: translateY(18px) scale(0.98); }
+}
+@keyframes lg-menu-in {
+  from { transform: translateY(-8px) scale(0.96); box-shadow: none; }
+}
+@keyframes lg-menu-out {
+  to { transform: translateY(-6px) scale(0.97); box-shadow: none; }
+}
+@keyframes lg-item-in {
+  from { opacity: 0; transform: translateY(-4px); }
+}
+@keyframes lg-fade-in {
+  from { opacity: 0; }
+}
+@keyframes lg-fade-out {
+  to { opacity: 0; }
+}
+
+/* ===========================================================================
+   noUiSlider — hairline track with a white knob
+   ========================================================================= */
+
+.ff-slider.noUi-target {
+  height: 2px;
+  border: none;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.15);
+  box-shadow: none;
+}
+
+.ff-slider .noUi-connect {
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.4), #ffffff);
+}
+
+.ff-slider.noUi-horizontal .noUi-handle {
+  width: 26px;
+  height: 26px;
+  right: -13px;
+  top: -12px;
+  border-radius: 9999px;
+  cursor: grab;
+  background: #fff;
+  border: none;
+  box-shadow: 0 6px 18px -4px rgba(255, 255, 255, 0.45);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.ff-slider .noUi-handle:hover {
+  box-shadow: 0 8px 22px -4px rgba(255, 255, 255, 0.6);
+}
+
+.ff-slider .noUi-handle:active {
+  cursor: grabbing;
+  transform: scale(1.06);
+}
+
+.ff-slider .noUi-handle::before,
+.ff-slider .noUi-handle::after {
+  display: none;
+}
+
+.ff-slider .noUi-handle:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.7);
+  outline-offset: 3px;
+}
+
+/* ===========================================================================
+   Misc
+   ========================================================================= */
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.14);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(255, 255, 255, 0.25);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lg-dots i,
+  .lg-spinner,
+  .lg-menu-enter,
+  .lg-menu-enter::before,
+  .lg-menu-enter::after,
+  .lg-menu-enter > *,
+  .lg-menu-leave,
+  .lg-menu-leave::before,
+  .lg-menu-leave::after,
+  .lg-menu-leave > *,
+  .lg-modal-enter .lg-modal-scrim,
+  .lg-modal-enter .lg-modal-dialog,
+  .lg-modal-leave .lg-modal-scrim,
+  .lg-modal-leave .lg-modal-dialog,
+  .lg-toast-enter,
+  .lg-toast-leave {
+    animation: none;
+  }
+
+  .lg-card,
+  .lg-bubble,
+  .lg-cta__knob {
+    transition: none;
+  }
+}
