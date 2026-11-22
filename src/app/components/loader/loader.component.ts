@@ -10,7 +10,7 @@ import { LiquidGlassDirective } from '../../shared/liquid-glass.directive';
     <div liquidGlass class="lg-panel lg-rim rounded-full max-w-xl mx-auto pl-2 pr-6 py-2 flex items-center gap-4 mb-6">
       <span class="lg-cta__knob w-12 h-12"><span class="lg-spinner"></span></span>
       <span class="flex-1 min-w-0">
-        <span class="block text-sm font-medium truncate">Searching Myntra, Nykaa, AJIO, Amazon & Flipkart…</span>
+        <span class="block text-sm font-medium truncate">Searching across all the shopping sites…</span>
         <span class="block text-xs text-white/45">Searching Google Shopping · usually a few seconds</span>
       </span>
       <span class="lg-dots lg-dots--busy hidden sm:flex"><i></i><i></i><i></i></span>

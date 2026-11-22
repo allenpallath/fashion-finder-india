@@ -37,7 +37,7 @@ export const DRESS_TYPES: Record<Gender, { placeholder: string; suggestions: str
   },
 };
 
-export const STYLE_OPTIONS = ['Slim Fit', 'Regular Fit', 'Flared', 'A-Line', 'Bodycon', 'Wrap', 'Oversized', 'Peplum'];
+export const STYLE_OPTIONS = ['Slim Fit', 'Regular Fit', 'Relaxed Fit', 'Loose Fit', 'Oversized'];
 
 export const OCCASION_OPTIONS = ['Casual', 'Office/Workwear', 'Party', 'Wedding', 'Festival', 'Date Night', 'Beach', 'Bridal'];
 

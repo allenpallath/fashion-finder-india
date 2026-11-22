@@ -9,14 +9,10 @@ import { ToastService } from './toast.service';
 
 export type SearchState = 'idle' | 'loading' | 'loading-more' | 'success' | 'error';
 
-/** Cards revealed per "Show more". */
-const BATCH = 12;
-
 /**
  * Search state for the results popup. One backend search returns ~40 Google
- * Shopping items (no paging), so results are revealed in batches for free;
- * once all are shown, "Find more" runs the next query variant (1 SerpApi
- * credit) and adds only items not seen yet.
+ * Shopping items (no paging), all shown at once. "Find more" runs the next
+ * query variant (1 SerpApi credit) and appends only items not seen yet.
  */
 @Injectable({ providedIn: 'root' })
 export class FashionSearchService {
@@ -24,19 +20,16 @@ export class FashionSearchService {
   private toast = inject(ToastService);
 
   private readonly status = signal<SearchState>('idle');
-  /** Everything collected for the current search; the first `shown` are visible. */
+  /** Everything collected for the current search. */
   private readonly all = signal<Product[]>([]);
-  private readonly shown = signal(0);
   /** True once every query variant has been tried. */
   private readonly exhausted = signal(false);
 
   readonly state = this.status.asReadonly();
-  readonly products = computed(() => this.all().slice(0, this.shown()));
-  readonly hasResults = computed(() => this.shown() > 0);
+  readonly products = this.all.asReadonly();
+  readonly hasResults = computed(() => this.all().length > 0);
   readonly loadingMore = computed(() => this.status() === 'loading-more');
-  /** True when the next "more" click needs a new search. */
-  readonly moreUsesSearch = computed(() => this.shown() >= this.all().length);
-  readonly canLoadMore = computed(() => !(this.exhausted() && this.moreUsesSearch()));
+  readonly canLoadMore = computed(() => !this.exhausted());
 
   private form: SearchFormData | null = null;
   private queries: string[] = [];
@@ -49,18 +42,13 @@ export class FashionSearchService {
     this.queryIndex = 0;
     this.seen.clear();
     this.all.set([]);
-    this.shown.set(0);
     this.exhausted.set(false);
     this.status.set('loading');
     return this.fetch(false);
   }
 
-  /** Reveals the next batch, or searches for more once everything is shown. */
+  /** Runs the next query variant and appends its new items. */
   loadMore(): Observable<Product[]> {
-    if (!this.moreUsesSearch()) {
-      this.revealNext();
-      return of(this.products());
-    }
     if (this.queryIndex + 1 >= this.queries.length) {
       this.exhausted.set(true);
       this.toast.show("That's everything we could find. Try changing your filters.", 'info');
@@ -77,7 +65,6 @@ export class FashionSearchService {
       map((res) => this.unseen(filterAndRank(res.products ?? [], this.form!))),
       tap((fresh) => {
         this.all.update((list) => [...list, ...fresh]);
-        this.revealNext();
         this.status.set('success');
         if (append && !fresh.length) {
           this.toast.show('No new items this time. Tap "Find more" again to try a broader search.', 'info');
@@ -90,10 +77,6 @@ export class FashionSearchService {
         return of([]);
       })
     );
-  }
-
-  private revealNext(): void {
-    this.shown.update((n) => Math.min(n + BATCH, this.all().length));
   }
 
   /** Drops items already collected; the same product can come back in later searches. */

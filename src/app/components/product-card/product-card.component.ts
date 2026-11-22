@@ -11,13 +11,14 @@ import { IconComponent } from '../../shared/icon.component';
   imports: [IconComponent, IconButtonComponent, CtaButtonComponent],
   host: { class: 'block w-full' },
   template: `
-    <article class="lg-card lg-rim w-full max-w-[260px] rounded-[2rem] p-2 flex flex-col h-full group">
-      <div class="relative h-[210px] rounded-[1.6rem] overflow-hidden">
+    <article class="lg-card lg-rim w-full max-w-[290px] rounded-[2rem] p-2 flex flex-col h-full group">
+      <!-- 3:4 portrait frame; the whole photo is shown, with black bars when its shape differs. -->
+      <div class="relative aspect-[3/4] rounded-[1.6rem] overflow-hidden bg-black">
         @if (imageSrc(); as src) {
           <img
             [src]="src"
             [alt]="product().productName"
-            class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+            class="w-full h-full object-contain transition-transform duration-700 group-hover:scale-105"
             loading="lazy"
             decoding="async"
             referrerpolicy="no-referrer"
@@ -29,7 +30,7 @@ import { IconComponent } from '../../shared/icon.component';
             Image unavailable
           </div>
         }
-        <div class="absolute inset-0 bg-gradient-to-t from-[#031c26]/85 via-transparent to-[#031c26]/25"></div>
+        <div class="absolute inset-0 bg-gradient-to-t from-black/25 via-transparent to-black/25"></div>
 
         <div class="absolute top-3 left-3 flex flex-col items-start gap-1.5">
           @for (tag of product().tags; track tag) {

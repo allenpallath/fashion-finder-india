@@ -19,7 +19,7 @@ import { BudgetSliderComponent } from '../budget-slider/budget-slider.component'
 import { GlassSelectComponent } from '../glass-select/glass-select.component';
 import { SuggestInputComponent } from '../suggest-input/suggest-input.component';
 
-/** The search form. Women/Men, dress type and colour are required. */
+/** The search form. Women/Men and dress type are required. */
 @Component({
   selector: 'app-search-form',
   imports: [
@@ -32,7 +32,8 @@ import { SuggestInputComponent } from '../suggest-input/suggest-input.component'
     BudgetSliderComponent,
     SegmentedComponent,
   ],
-  host: { class: 'block' },
+  // relative z-10: open dropdowns stay above the content after the form.
+  host: { class: 'block relative z-10' },
   template: `
     <section id="search-form" class="w-full max-w-6xl mx-auto px-4 pt-4 pb-6 sm:pt-5 scroll-mt-6">
       <div liquidGlass class="lg-panel lg-rim rounded-[2rem] sm:rounded-[2.75rem] p-5 sm:p-8">
@@ -56,14 +57,13 @@ import { SuggestInputComponent } from '../suggest-input/suggest-input.component'
               />
             </app-field>
 
-            <app-field label="Colour *" controlId="colour" [error]="showError('colour') ? 'Colour is required' : null">
+            <app-field label="Colour" controlId="colour">
               <div class="relative">
                 <input
                   id="colour"
                   formControlName="colour"
                   placeholder="Emerald green, dusty rose, ivory…"
                   class="lg-input pr-14"
-                  [class.lg-input--error]="showError('colour')"
                 />
                 @if (swatch(); as colour) {
                   <span
@@ -85,7 +85,7 @@ import { SuggestInputComponent } from '../suggest-input/suggest-input.component'
 
           <app-budget-slider [(value)]="budget" />
 
-          <button type="submit" appCta [disabled]="!formValid()">Search</button>
+          <button type="submit" appCta icon="search" [disabled]="!formValid()">Search</button>
         </form>
       </div>
     </section>
@@ -100,7 +100,7 @@ export class SearchFormComponent {
 
   protected readonly form = inject(FormBuilder).nonNullable.group({
     dressType: ['', Validators.required],
-    colour: ['', Validators.required],
+    colour: [''],
   });
   protected gender = signal<Gender>('Women');
   /** Dress type suggestions follow the Women/Men choice. */
@@ -116,7 +116,7 @@ export class SearchFormComponent {
   /** Preview swatch for known colour names. */
   protected swatch = computed(() => COLOR_MAP[this.colour().toLowerCase().trim()] ?? null);
 
-  protected showError(field: 'dressType' | 'colour'): boolean {
+  protected showError(field: 'dressType'): boolean {
     const control = this.form.controls[field];
     return control.invalid && (control.touched || this.submitted());
   }

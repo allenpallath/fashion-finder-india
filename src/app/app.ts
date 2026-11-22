@@ -46,7 +46,7 @@ import { IconComponent } from './shared/icon.component';
 
     @if (resultsOpen()) {
       <!-- The popup, carousel and Swiper live in their own chunk, fetched while the browser is idle. -->
-      @defer (prefetch on idle) {
+      @defer (on idle) {
         <app-results-modal animate.enter="lg-modal-enter" animate.leave="lg-modal-leave" [title]="title()" (closed)="resultsOpen.set(false)">
           @switch (view()) {
             @case ('loading') {
@@ -57,7 +57,6 @@ import { IconComponent } from './shared/icon.component';
                 [products]="search.products()"
                 [loadingMore]="search.loadingMore()"
                 [canLoadMore]="search.canLoadMore()"
-                [moreUsesSearch]="search.moreUsesSearch()"
                 (searchAgain)="backToForm()"
                 (loadMore)="search.loadMore().subscribe()"
               />
