@@ -94,10 +94,10 @@ body {
       0 20px 40px -24px rgba(0, 0, 0, 0.6);
   }
 
-  /* Cards sit on the already-frosted popup, so they skip their own backdrop blur:
-     it looks the same and keeps the carousel smooth while sliding. */
+  /* Product cards: frosted glass over the page background, a little lighter than panels. */
   .lg-card {
-    --lg-glass: none;
+    --lg-glass: blur(22px) saturate(140%);
+    background-color: rgba(255, 255, 255, 0.06);
     box-shadow:
       inset 0 1px 0 rgba(255, 255, 255, 0.28),
       0 10px 22px -14px rgba(0, 0, 0, 0.7);
@@ -105,13 +105,19 @@ body {
   }
 
   @media (hover: hover) {
-    /* Kept within the carousel's bottom padding so the glow isn't clipped. */
-  .lg-card:hover {
-    transform: translateY(-3px);
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.32),
-      0 10px 22px -12px rgba(90, 210, 244, 0.55);
+    .lg-card:hover {
+      transform: translateY(-3px);
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.32),
+        0 10px 22px -12px rgba(90, 210, 244, 0.55);
+    }
   }
+
+  /* Phones: bottom bar buttons drop their trailing dots so the bar fits. */
+  @media (max-width: 639px) {
+    app-bottom-bar .lg-dots {
+      display: none;
+    }
   }
 
   /* Gradient hairline border via mask */
@@ -394,32 +400,6 @@ body {
     border-color: #fff;
   }
 
-  /* Thin "range" meter with glass pill marker (rating on cards) */
-  .lg-meter {
-    position: relative;
-    height: 1.5rem;
-  }
-
-  .lg-meter::before {
-    content: '';
-    position: absolute;
-    left: 0;
-    right: 0;
-    top: 50%;
-    height: 1px;
-    background: linear-gradient(90deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0.15));
-  }
-
-  .lg-meter__pill {
-    position: absolute;
-    top: 50%;
-    transform: translate(-50%, -50%);
-    padding: 0.1rem 0.55rem;
-    font-size: 0.7rem;
-    font-weight: 500;
-    border-radius: 9999px;
-  }
-
   /* Dropdown menu open/close. Only transforms and child opacity are animated:
      opacity on the menu itself would cut its blur layer off from the page. */
   .lg-menu-enter {
@@ -445,16 +425,6 @@ body {
   }
 }
 
-/* Results modal: the scrim fades, the dialog only moves (fading it would cut
-   its glass off from the page). The host holds for the same time so Angular
-   waits before removing it. */
-.lg-modal-enter { animation: lg-hold 0.32s; }
-.lg-modal-enter .lg-modal-scrim { animation: lg-fade-in 0.25s ease-out; }
-.lg-modal-enter .lg-modal-dialog { animation: lg-modal-in 0.32s cubic-bezier(0.2, 0.8, 0.2, 1); }
-.lg-modal-leave { animation: lg-hold 0.2s forwards; }
-.lg-modal-leave .lg-modal-scrim { animation: lg-fade-out 0.2s ease-in forwards; }
-.lg-modal-leave .lg-modal-dialog { animation: lg-modal-out 0.2s ease-in forwards; }
-
 /* Toasts slide up and settle; only transforms, so their glass stays live. */
 .lg-toast-enter { animation: lg-toast-in 0.34s cubic-bezier(0.2, 0.8, 0.2, 1); }
 .lg-toast-leave { animation: lg-toast-out 0.22s ease-in forwards; }
@@ -466,16 +436,6 @@ body {
   to { transform: translateY(calc(100% + 1.5rem)) scale(0.96); }
 }
 
-@keyframes lg-hold {
-  from { opacity: 1; }
-  to { opacity: 1; }
-}
-@keyframes lg-modal-in {
-  from { transform: translateY(28px) scale(0.97); }
-}
-@keyframes lg-modal-out {
-  to { transform: translateY(18px) scale(0.98); }
-}
 @keyframes lg-menu-in {
   from { transform: translateY(-8px) scale(0.96); box-shadow: none; }
 }
@@ -573,10 +533,6 @@ body {
   .lg-menu-leave::before,
   .lg-menu-leave::after,
   .lg-menu-leave > *,
-  .lg-modal-enter .lg-modal-scrim,
-  .lg-modal-enter .lg-modal-dialog,
-  .lg-modal-leave .lg-modal-scrim,
-  .lg-modal-leave .lg-modal-dialog,
   .lg-toast-enter,
   .lg-toast-leave {
     animation: none;

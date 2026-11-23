@@ -9,8 +9,19 @@ import { ToastService } from './toast.service';
 
 export type SearchState = 'idle' | 'loading' | 'loading-more' | 'success' | 'error';
 
+/** Last search, kept for the tab session so reloading /results costs no credits. */
+const SESSION_KEY = 'ff-last-search';
+
+interface SavedSearch {
+  form: SearchFormData;
+  queries: string[];
+  queryIndex: number;
+  products: Product[];
+  exhausted: boolean;
+}
+
 /**
- * Search state for the results popup. One backend search returns ~40 Google
+ * Search state for the results page. One backend search returns ~40 Google
  * Shopping items (no paging), all shown at once. "Find more" runs the next
  * query variant (1 SerpApi credit) and appends only items not seen yet.
  */
@@ -36,8 +47,16 @@ export class FashionSearchService {
   private queryIndex = 0;
   private seen = new Set<string>();
 
+  /** The current search's form values, for the results page heading. */
+  readonly lastForm = signal<SearchFormData | null>(null);
+
+  constructor() {
+    this.restore();
+  }
+
   search(form: SearchFormData): Observable<Product[]> {
     this.form = form;
+    this.lastForm.set(form);
     this.queries = queryVariants(form);
     this.queryIndex = 0;
     this.seen.clear();
@@ -51,6 +70,7 @@ export class FashionSearchService {
   loadMore(): Observable<Product[]> {
     if (this.queryIndex + 1 >= this.queries.length) {
       this.exhausted.set(true);
+      this.save();
       this.toast.show("That's everything we could find. Try changing your filters.", 'info');
       return of([]);
     }
@@ -61,11 +81,13 @@ export class FashionSearchService {
 
   private fetch(append: boolean): Observable<Product[]> {
     const q = this.queries[this.queryIndex];
+    // The budget is applied in filterAndRank: SerpApi's max_price returned the same few items repeated.
     return this.http.get<{ products: Product[] }>(`${environment.apiBase}/search`, { params: { q } }).pipe(
       map((res) => this.unseen(filterAndRank(res.products ?? [], this.form!))),
       tap((fresh) => {
         this.all.update((list) => [...list, ...fresh]);
         this.status.set('success');
+        this.save();
         if (append && !fresh.length) {
           this.toast.show('No new items this time. Tap "Find more" again to try a broader search.', 'info');
         }
@@ -77,6 +99,38 @@ export class FashionSearchService {
         return of([]);
       })
     );
+  }
+
+  private save(): void {
+    const saved: SavedSearch = {
+      form: this.form!,
+      queries: this.queries,
+      queryIndex: this.queryIndex,
+      products: this.all(),
+      exhausted: this.exhausted(),
+    };
+    try {
+      sessionStorage.setItem(SESSION_KEY, JSON.stringify(saved));
+    } catch {
+      // Storage full or blocked: results just won't survive a reload.
+    }
+  }
+
+  private restore(): void {
+    try {
+      const saved: SavedSearch | null = JSON.parse(sessionStorage.getItem(SESSION_KEY) ?? 'null');
+      if (!saved?.products?.length) return;
+      this.form = saved.form;
+      this.lastForm.set(saved.form);
+      this.queries = saved.queries;
+      this.queryIndex = saved.queryIndex;
+      this.exhausted.set(saved.exhausted);
+      this.unseen(saved.products);
+      this.all.set(saved.products);
+      this.status.set('success');
+    } catch {
+      // Missing or unreadable: start fresh.
+    }
   }
 
   /** Drops items already collected; the same product can come back in later searches. */

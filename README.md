@@ -33,17 +33,18 @@ src/app/
     segmented.component.ts     <app-segmented [options] [(value)]> pick-one toggle (Women | Men)
     listbox.ts                 Arrow/Home/End keyboard helper for dropdowns
     liquid-glass.directive.ts  Glass refraction (Chromium)
-  components/    Form controls (glass-select, suggest-input, budget-slider),
-                 search-form, results (modal, carousel, product-card, loader), toast, background
-  services/      fashion-search (state as signals), search-query (pure query/filter logic),
-                 store-link, toast
+  pages/         Routes: home (/), results (/results), wishlist (/wishlist)
+  components/    Form controls (glass-select, suggest-input, budget-slider), search-form,
+                 product-card, product-list, bottom-bar, wishlist-link, loader, toast, background
+  services/      fashion-search (state as signals, last search kept in sessionStorage),
+                 search-query (pure query/filter logic), wishlist (localStorage), store-link, toast
   models/        Product and form types and option lists
 src/styles.css   Theme + shared glass classes (lg-panel, lg-bubble, lg-cta, lg-menu, …)
 server/          serpapi.mjs (shared API logic), index.mjs (local Node server)
 functions/api/   Cloudflare Pages Functions: search.js, store-link.js
 ```
 
-The results popup, carousel and Swiper load lazily with `@defer`.
+The results and wishlist pages are lazy-loaded routes (`app.routes.ts`).
 
 ## Hosting (Cloudflare Pages)
 

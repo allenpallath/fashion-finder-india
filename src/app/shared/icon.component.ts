@@ -14,12 +14,13 @@ const ICONS = {
   list: ['M4 6h16M4 12h16M4 18h10'],
   warning: ['M12 9v4m0 4h.01M10.3 3.9L2.4 18a2 2 0 001.7 3h15.8a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z'],
   info: ['M12 16v-4m0-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z'],
+  heart: ['M12 20s-7.5-4.6-9.3-9.2C1.6 8 3.5 4.5 7 4.5c2 0 3.5 1.1 5 3 1.5-1.9 3-3 5-3 3.5 0 5.4 3.5 4.3 6.3C19.5 15.4 12 20 12 20z'],
   hanger: ['M14 6a2 2 0 1 0-4 0c0 1.7.7 3 2 4M12 10l8.2 4.6a1.6 1.6 0 0 1 .8 1.4v.4a1.6 1.6 0 0 1-1.6 1.6H4.6A1.6 1.6 0 0 1 3 16.4V16a1.6 1.6 0 0 1 .8-1.4z'],
 } as const;
 
 export type IconName = keyof typeof ICONS;
 
-/** Inline SVG icon drawn in the current text colour: <app-icon name="search" [size]="20" />. */
+/** Inline SVG icon drawn in the current text colour: <app-icon name="search" [size]="20" />. `filled` also fills the shape. */
 @Component({
   selector: 'app-icon',
   host: { class: 'inline-block shrink-0', 'aria-hidden': 'true' },
@@ -27,13 +28,13 @@ export type IconName = keyof typeof ICONS;
     <svg
       class="block"
       viewBox="0 0 24 24"
-      fill="none"
       stroke="currentColor"
       stroke-linecap="round"
       stroke-linejoin="round"
       [attr.width]="size()"
       [attr.height]="size()"
       [attr.stroke-width]="stroke()"
+      [attr.fill]="filled() ? 'currentColor' : 'none'"
     >
       @for (d of paths(); track d) {
         <path [attr.d]="d" />
@@ -45,6 +46,7 @@ export class IconComponent {
   name = input.required<IconName>();
   size = input(16);
   stroke = input(2);
+  filled = input(false);
 
   protected paths = computed(() => ICONS[this.name()]);
 }

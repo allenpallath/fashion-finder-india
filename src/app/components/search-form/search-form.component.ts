@@ -1,4 +1,4 @@
-import { Component, computed, inject, output, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, input, output, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { map } from 'rxjs';
@@ -91,7 +91,9 @@ import { SuggestInputComponent } from '../suggest-input/suggest-input.component'
     </section>
   `,
 })
-export class SearchFormComponent {
+export class SearchFormComponent implements OnInit {
+  /** Values to start with, e.g. the last search when coming back from the results page. */
+  initial = input<SearchFormData | null>(null);
   searchSubmit = output<SearchFormData>();
 
   protected readonly genders = GENDERS;
@@ -115,6 +117,17 @@ export class SearchFormComponent {
 
   /** Preview swatch for known colour names. */
   protected swatch = computed(() => COLOR_MAP[this.colour().toLowerCase().trim()] ?? null);
+
+  ngOnInit(): void {
+    const last = this.initial();
+    if (!last) return;
+    this.form.setValue({ dressType: last.dressType, colour: last.colour });
+    this.gender.set(last.gender);
+    // Drop options that no longer exist (older saved searches).
+    this.styles.set(last.styles.filter((s) => STYLE_OPTIONS.includes(s)));
+    this.occasions.set(last.occasions.filter((o) => OCCASION_OPTIONS.includes(o)));
+    this.budget.set(last.budgetRange);
+  }
 
   protected showError(field: 'dressType'): boolean {
     const control = this.form.controls[field];

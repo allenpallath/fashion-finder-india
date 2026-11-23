@@ -1,11 +1,11 @@
 import { Component } from '@angular/core';
 import { LiquidGlassDirective } from '../../shared/liquid-glass.directive';
 
-/** Loading state for the results popup: a status pill and skeleton cards. */
+/** Loading state for the results page: a status pill and skeleton rows. */
 @Component({
   selector: 'app-loader',
   imports: [LiquidGlassDirective],
-  host: { class: 'block py-4' },
+  host: { class: 'block' },
   template: `
     <div liquidGlass class="lg-panel lg-rim rounded-full max-w-xl mx-auto pl-2 pr-6 py-2 flex items-center gap-4 mb-6">
       <span class="lg-cta__knob w-12 h-12"><span class="lg-spinner"></span></span>
@@ -16,16 +16,16 @@ import { LiquidGlassDirective } from '../../shared/liquid-glass.directive';
       <span class="lg-dots lg-dots--busy hidden sm:flex"><i></i><i></i><i></i></span>
     </div>
 
-    <!-- One skeleton on phones, two on tablets, three on desktop. -->
-    <div class="flex gap-6 justify-center pb-6">
-      @for (visibility of ['', 'hidden sm:block', 'hidden lg:block']; track $index) {
-        <div class="lg-card lg-rim w-[260px] shrink-0 rounded-[2rem] p-2" [class]="visibility">
-          <div class="h-[210px] rounded-[1.6rem] shimmer"></div>
-          <div class="px-3 pt-4 pb-2 space-y-3">
+    <!-- Skeleton rows shaped like the product cards (two columns on large screens). -->
+    <div class="grid gap-3 sm:gap-4 lg:grid-cols-2">
+      @for (row of [1, 2, 3, 4]; track row) {
+        <div class="lg-card lg-rim rounded-[1.75rem] p-2 flex gap-3 sm:gap-4">
+          <div class="w-28 sm:w-36 aspect-[3/4] rounded-[1.35rem] shimmer shrink-0"></div>
+          <div class="flex-1 py-2 pr-2 space-y-3">
             <div class="h-3 w-4/5 rounded-full shimmer"></div>
             <div class="h-3 w-1/2 rounded-full shimmer"></div>
-            <div class="h-8 w-2/5 rounded-full shimmer mt-4"></div>
-            <div class="h-12 w-full rounded-full shimmer mt-4"></div>
+            <div class="h-7 w-2/5 rounded-full shimmer mt-6"></div>
+            <div class="h-10 w-36 rounded-full shimmer"></div>
           </div>
         </div>
       }

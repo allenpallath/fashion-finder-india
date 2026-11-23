@@ -3,12 +3,12 @@ import { ToastService } from '../../services/toast.service';
 import { IconButtonComponent } from '../../shared/icon-button.component';
 import { IconComponent } from '../../shared/icon.component';
 
-/** Renders ToastService messages as glass toasts at the bottom centre of the screen. */
+/** Renders ToastService messages as glass toasts at the bottom centre, above the pages' bottom bar. */
 @Component({
   selector: 'app-toast-host',
   imports: [IconComponent, IconButtonComponent],
   host: {
-    class: 'fixed inset-x-0 bottom-0 z-[200] flex flex-col items-center gap-2 px-4 pb-[calc(1.25rem+env(safe-area-inset-bottom))] pointer-events-none',
+    class: 'fixed inset-x-0 bottom-0 z-[200] flex flex-col items-center gap-2 px-4 pb-[calc(5.5rem+env(safe-area-inset-bottom))] pointer-events-none',
   },
   template: `
     @for (toast of toasts.toasts(); track toast.id) {
