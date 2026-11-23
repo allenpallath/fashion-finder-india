@@ -15,7 +15,7 @@ import { CtaButtonComponent } from '../../shared/cta-button.component';
 import { FieldComponent } from '../../shared/field.component';
 import { LiquidGlassDirective } from '../../shared/liquid-glass.directive';
 import { SegmentedComponent } from '../../shared/segmented.component';
-import { BudgetSliderComponent } from '../budget-slider/budget-slider.component';
+import { PriceRangeComponent } from '../price-range/price-range.component';
 import { GlassSelectComponent } from '../glass-select/glass-select.component';
 import { SuggestInputComponent } from '../suggest-input/suggest-input.component';
 
@@ -29,7 +29,7 @@ import { SuggestInputComponent } from '../suggest-input/suggest-input.component'
     CtaButtonComponent,
     SuggestInputComponent,
     GlassSelectComponent,
-    BudgetSliderComponent,
+    PriceRangeComponent,
     SegmentedComponent,
   ],
   // relative z-10: open dropdowns stay above the content after the form.
@@ -83,7 +83,7 @@ import { SuggestInputComponent } from '../suggest-input/suggest-input.component'
             </app-field>
           </div>
 
-          <app-budget-slider [(value)]="budget" />
+          <app-price-range [(min)]="minPrice" [(max)]="maxPrice" />
 
           <button type="submit" appCta icon="search" [disabled]="!formValid()">Search</button>
         </form>
@@ -109,7 +109,8 @@ export class SearchFormComponent implements OnInit {
   protected dressTypes = computed(() => DRESS_TYPES[this.gender()]);
   protected occasions = signal<string[]>([]);
   protected styles = signal<string[]>([]);
-  protected budget = signal(2000);
+  protected minPrice = signal(0);
+  protected maxPrice = signal<number | null>(2000);
   private submitted = signal(false);
 
   protected formValid = toSignal(this.form.statusChanges.pipe(map((s) => s === 'VALID')), { initialValue: false });
@@ -126,7 +127,8 @@ export class SearchFormComponent implements OnInit {
     // Drop options that no longer exist (older saved searches).
     this.styles.set(last.styles.filter((s) => STYLE_OPTIONS.includes(s)));
     this.occasions.set(last.occasions.filter((o) => OCCASION_OPTIONS.includes(o)));
-    this.budget.set(last.budgetRange);
+    this.minPrice.set(last.minPrice);
+    this.maxPrice.set(last.maxPrice);
   }
 
   protected showError(field: 'dressType'): boolean {
@@ -143,7 +145,8 @@ export class SearchFormComponent implements OnInit {
       gender: this.gender(),
       styles: this.styles(),
       occasions: this.occasions(),
-      budgetRange: this.budget(),
+      minPrice: this.minPrice(),
+      maxPrice: this.maxPrice(),
     });
   }
 }

@@ -3,7 +3,7 @@ export interface Product {
   id: string;
   productName: string;
   price: string;
-  /** Numeric price, used for the budget filter (null if unreadable). */
+  /** Numeric price, used for the price range filter (null if unreadable). */
   priceValue: number | null;
   /** Store name, e.g. "Myntra". */
   website: string;

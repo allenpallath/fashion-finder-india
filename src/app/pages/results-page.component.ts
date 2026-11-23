@@ -4,23 +4,27 @@ import { BottomBarComponent } from '../components/bottom-bar/bottom-bar.componen
 import { LoaderComponent } from '../components/loader/loader.component';
 import { ProductListComponent } from '../components/product-list/product-list.component';
 import { WishlistLinkComponent } from '../components/wishlist-link/wishlist-link.component';
-import { MAX_BUDGET, formatBudget } from '../models/search-form.model';
+import { priceLabel } from '../models/search-form.model';
 import { FashionSearchService } from '../services/fashion-search.service';
+import { BackButtonComponent } from '../shared/back-button.component';
 import { CtaButtonComponent } from '../shared/cta-button.component';
 import { IconComponent } from '../shared/icon.component';
 
 /** "/results": the current search as a list, with Search again / Find more / Wishlist in a bottom bar. */
 @Component({
   selector: 'app-results-page',
-  imports: [BottomBarComponent, LoaderComponent, ProductListComponent, WishlistLinkComponent, CtaButtonComponent, IconComponent],
+  imports: [BackButtonComponent, BottomBarComponent,LoaderComponent, ProductListComponent, WishlistLinkComponent, CtaButtonComponent, IconComponent],
   host: { class: 'block' },
   template: `
     <main class="max-w-6xl mx-auto px-4 pt-6 sm:pt-10 pb-32">
-      <header class="mb-5 sm:mb-7">
-        @if (summary(); as text) {
-          <p class="text-sm text-white/50 mb-1 truncate">{{ text }}</p>
-        }
-        <h1 class="text-2xl sm:text-4xl font-medium tracking-tight">{{ title() }}</h1>
+      <header class="mb-5 sm:mb-7 flex items-center gap-3 sm:gap-4">
+        <app-back-button />
+        <div class="min-w-0">
+          @if (summary(); as text) {
+            <p class="text-sm text-white/50 mb-1 truncate">{{ text }}</p>
+          }
+          <h1 class="text-2xl sm:text-4xl font-medium tracking-tight">{{ title() }}</h1>
+        </div>
       </header>
 
       @switch (view()) {
@@ -77,8 +81,8 @@ export class ResultsPageComponent {
   protected readonly summary = computed(() => {
     const form = this.search.lastForm();
     if (!form) return '';
-    const budget = form.budgetRange < MAX_BUDGET ? `under ${formatBudget(form.budgetRange)}` : '';
-    return [form.gender, form.dressType, form.colour, ...form.styles, ...form.occasions, budget].filter(Boolean).join(' · ');
+    const price = priceLabel(form.minPrice, form.maxPrice);
+    return [form.gender, form.dressType, form.colour, ...form.styles, ...form.occasions, price].filter(Boolean).join(' · ');
   });
 
   constructor() {

@@ -2,7 +2,7 @@
 // Google Shopping results have no colour or style fields, so ranking uses titles.
 
 import { Product } from '../models/product.model';
-import { Gender, MAX_BUDGET, SearchFormData } from '../models/search-form.model';
+import { Gender, SearchFormData } from '../models/search-form.model';
 
 /** Titles meant only for the other gender ("women" doesn't match \bmen\b). Unisex titles pass. */
 const OTHER_GENDER: Record<Gender, RegExp> = {
@@ -62,7 +62,7 @@ export function queryVariants(form: SearchFormData): string[] {
 }
 
 /**
- * Keeps items within budget whose title doesn't name a different colour or
+ * Keeps items in the price range whose title doesn't name a different colour or
  * the other gender. Order: titles naming the wanted colour, then ones
  * mentioning a picked style/occasion, otherwise Google's order.
  */
@@ -70,16 +70,16 @@ export function filterAndRank(products: Product[], form: SearchFormData): Produc
   const wanted = colourFamily(form.colour);
   const prefs = [...form.styles, ...form.occasions].map((name) => PREFERENCE_TERMS[name]).filter(Boolean);
   return products
-    .filter((p) => withinBudget(p, form.budgetRange) && !OTHER_GENDER[form.gender].test(p.productName.toLowerCase()))
+    .filter((p) => inPriceRange(p, form) &&!OTHER_GENDER[form.gender].test(p.productName.toLowerCase()))
     .map((p, index) => ({ p, index, ...score(p.productName.toLowerCase(), wanted, prefs) }))
     .filter((x) => x.keep)
     .sort((a, b) => b.points - a.points || a.index - b.index)
     .map((x) => x.p);
 }
 
-/** The top budget step has no upper limit; items with no readable price are kept. */
-const withinBudget = (p: Product, budget: number) =>
-  budget >= MAX_BUDGET || p.priceValue == null || p.priceValue <= budget;
+/** Items with no readable price are kept. */
+const inPriceRange = (p: Product, form: SearchFormData) =>
+  p.priceValue == null || (p.priceValue >= form.minPrice && (form.maxPrice == null || p.priceValue <= form.maxPrice));
 
 /** Every colour word in the families the shopper's colour belongs to ("red" → red, maroon, wine…). */
 const colourFamily = (colour: string) =>

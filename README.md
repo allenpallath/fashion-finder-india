@@ -34,7 +34,7 @@ src/app/
     listbox.ts                 Arrow/Home/End keyboard helper for dropdowns
     liquid-glass.directive.ts  Glass refraction (Chromium)
   pages/         Routes: home (/), results (/results), wishlist (/wishlist)
-  components/    Form controls (glass-select, suggest-input, budget-slider), search-form,
+  components/    Form controls (glass-select, suggest-input, price-range), search-form,
                  product-card, product-list, bottom-bar, wishlist-link, loader, toast, background
   services/      fashion-search (state as signals, last search kept in sessionStorage),
                  search-query (pure query/filter logic), wishlist (localStorage), store-link, toast

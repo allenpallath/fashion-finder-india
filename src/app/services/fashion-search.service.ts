@@ -81,7 +81,7 @@ export class FashionSearchService {
 
   private fetch(append: boolean): Observable<Product[]> {
     const q = this.queries[this.queryIndex];
-    // The budget is applied in filterAndRank: SerpApi's max_price returned the same few items repeated.
+    // The price range is applied in filterAndRank: SerpApi's max_price returned the same few items repeated.
     return this.http.get<{ products: Product[] }>(`${environment.apiBase}/search`, { params: { q } }).pipe(
       map((res) => this.unseen(filterAndRank(res.products ?? [], this.form!))),
       tap((fresh) => {
@@ -119,7 +119,8 @@ export class FashionSearchService {
   private restore(): void {
     try {
       const saved: SavedSearch | null = JSON.parse(sessionStorage.getItem(SESSION_KEY) ?? 'null');
-      if (!saved?.products?.length) return;
+      // Searches saved before the price range existed are dropped.
+      if (!saved?.products?.length || saved.form?.minPrice == null) return;
       this.form = saved.form;
       this.lastForm.set(saved.form);
       this.queries = saved.queries;

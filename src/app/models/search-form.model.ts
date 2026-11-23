@@ -8,7 +8,10 @@ export interface SearchFormData {
   colour: string;
   styles: string[];
   occasions: string[];
-  budgetRange: number;
+  /** Lowest price in ₹; 0 means no lower limit. */
+  minPrice: number;
+  /** Highest price in ₹; null means no upper limit. */
+  maxPrice: number | null;
 }
 
 /** Dress type suggestions and placeholder for each gender. */
@@ -41,17 +44,19 @@ export const STYLE_OPTIONS = ['Slim Fit', 'Regular Fit', 'Relaxed Fit', 'Loose F
 
 export const OCCASION_OPTIONS = ['Casual', 'Office/Workwear', 'Party', 'Wedding', 'Festival', 'Date Night', 'Beach', 'Bridal'];
 
-/** Budget slider stops. The last one means "no upper limit". */
-export const BUDGET_STEPS = [500, 1000, 2000, 3000, 5000, 10000];
-export const MAX_BUDGET = BUDGET_STEPS[BUDGET_STEPS.length - 1];
+/** Right end of the price slider; dragging the max knob there means "no upper limit". */
+export const PRICE_SLIDER_MAX = 10000;
 
-/** "₹2,000", or "₹10,000+" for the top step. */
-export const formatBudget = (value: number) =>
-  `₹${value.toLocaleString('en-IN')}${value >= MAX_BUDGET ? '+' : ''}`;
+/** "₹2,000". */
+export const formatPrice = (value: number) => `₹${value.toLocaleString('en-IN')}`;
 
-/** Compact label for the slider ticks: "₹500", "₹2k", "₹10k+". */
-export const shortBudget = (value: number) =>
-  value < 1000 ? `₹${value}` : `₹${value / 1000}k${value >= MAX_BUDGET ? '+' : ''}`;
+/** "₹500 – ₹2,000", "under ₹2,000", "over ₹500", or '' when there are no limits. */
+export function priceLabel(min: number, max: number | null): string {
+  if (min > 0 && max != null) return `${formatPrice(min)} – ${formatPrice(max)}`;
+  if (max != null) return `under ${formatPrice(max)}`;
+  if (min > 0) return `over ${formatPrice(min)}`;
+  return '';
+}
 
 /** Swatch colours for the colour field preview. */
 export const COLOR_MAP: Record<string, string> = {
